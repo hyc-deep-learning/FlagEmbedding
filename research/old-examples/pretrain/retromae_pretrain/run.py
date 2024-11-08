@@ -16,10 +16,12 @@ from transformers import (
 )
 from transformers.trainer_utils import is_main_process
 
-from .arguments import DataTrainingArguments, ModelArguments
-from .data import DatasetForPretraining, RetroMAECollator
-from .modeling import RetroMAEForPretraining
-from .trainer import PreTrainer
+os.environ["WANDB_DISABLED"] = "true"
+print(sys.path)
+from arguments import DataTrainingArguments, ModelArguments
+from data import DatasetForPretraining, RetroMAECollator
+from modeling import RetroMAEForPretraining
+from trainer import PreTrainer
 
 logger = logging.getLogger(__name__)
 
@@ -126,3 +128,18 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+"""
+
+torchrun --nproc_per_node {number of gpus} \
+-m FlagEmbedding.baai_general_embedding.retromae_pretrain.run \
+
+
+python FlagEmbedding/baai_general_embedding/retromae_pretrain/run.py --output_dir outputs --config_name /root/autodl-tmp/pretrained_model/tokenizer/bert-base-uncased --train_data toy_pretrain_data.jsonl --learning_rate 2e-5 --num_train_epochs 2 --per_device_train_batch_size {batch size; set 1 for toy data} --dataloader_drop_last True --max_seq_length 512 --logging_steps 10 --dataloader_num_workers 12
+
+python run.py --output_dir outputs --config_name /root/autodl-tmp/pretrained_model/tokenizer/bert-base-uncased --tokenizer_name /root/autodl-tmp/pretrained_model/tokenizer/bert-base-uncased --train_data /root/autodl-tmp/hyc/Qwen/FlagEmbedding/research/old-examples/pretrain/toy_pretrain_data.jsonl --learning_rate 2e-5 --num_train_epochs 2 --per_device_train_batch_size 2 --dataloader_drop_last True --max_seq_length 512 --logging_steps 10 --dataloader_num_workers 12
+
+
+/root/autodl-tmp/pretrained_model/tokenizer/bert-base-uncased
+
+"""

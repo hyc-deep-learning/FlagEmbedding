@@ -6,8 +6,8 @@ from torch import nn
 from transformers import BertForMaskedLM, AutoModelForMaskedLM
 from transformers.modeling_outputs import MaskedLMOutput
 
-from .arguments import ModelArguments
-from .enhancedDecoder import BertLayerForDecoder
+from arguments import ModelArguments
+from enhancedDecoder import BertLayerForDecoder
 
 logger = logging.getLogger(__name__)
 
@@ -38,16 +38,10 @@ class RetroMAEForPretraining(nn.Module):
     def gradient_checkpointing_enable(self, **kwargs):
         self.lm.gradient_checkpointing_enable(**kwargs)
 
-    def forward(self,
-                encoder_input_ids, encoder_attention_mask, encoder_labels,
+    def forward(self, encoder_input_ids, encoder_attention_mask, encoder_labels,
                 decoder_input_ids, decoder_attention_mask, decoder_labels):
-
-        lm_out: MaskedLMOutput = self.lm(
-            encoder_input_ids, encoder_attention_mask,
-            labels=encoder_labels,
-            output_hidden_states=True,
-            return_dict=True
-        )
+        lm_out: MaskedLMOutput = self.lm(encoder_input_ids, encoder_attention_mask, labels=encoder_labels,
+                                         output_hidden_states=True, return_dict=True)
         cls_hiddens = lm_out.hidden_states[-1][:, :1]  # B 1 D
 
         decoder_embedding_output = self.decoder_embeddings(input_ids=decoder_input_ids)
@@ -60,16 +54,11 @@ class RetroMAEForPretraining(nn.Module):
         cls_hiddens = cls_hiddens.expand(hiddens.size(0), hiddens.size(1), hiddens.size(2))
         query = self.decoder_embeddings(inputs_embeds=cls_hiddens)
 
-        matrix_attention_mask = self.lm.get_extended_attention_mask(
-            decoder_attention_mask,
-            decoder_attention_mask.shape,
-            decoder_attention_mask.device
-        )
+        matrix_attention_mask = self.lm.get_extended_attention_mask(decoder_attention_mask,
+                                                                    decoder_attention_mask.shape,
+                                                                    decoder_attention_mask.device)
 
-        hiddens = self.c_head(query=query,
-                              key=hiddens,
-                              value=hiddens,
-                              attention_mask=matrix_attention_mask)[0]
+        hiddens = self.c_head(query=query, key=hiddens, value=hiddens, attention_mask=matrix_attention_mask)[0]
         pred_scores, loss = self.mlm_loss(hiddens, decoder_labels)
 
         return (loss + lm_out.loss,)
