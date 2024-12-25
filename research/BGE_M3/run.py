@@ -21,20 +21,19 @@ from .data import SameDatasetTrainDataset, EmbedCollator
 from .modeling import BGEM3Model
 from .trainer import BiTrainer
 
-
 logger = logging.getLogger(__name__)
 
 
 class TrainerCallbackForDataRefresh(TrainerCallback):
     def __init__(self, train_dataset):
         self.train_dataset = train_dataset
-        
+
     def on_epoch_end(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
-            """
-            Event called at the end of an epoch.
-            """
-            self.train_dataset.refresh_epoch()
-        
+        """
+        Event called at the end of an epoch.
+        """
+        self.train_dataset.refresh_epoch()
+
 
 def main():
     parser = HfArgumentParser((ModelArguments, DataArguments, TrainingArguments))
@@ -112,13 +111,13 @@ def main():
 
     # print(f"===========================Rank {dist.get_rank()}: start loading data===========================")
     if data_args.same_task_within_batch:
-        train_dataset = SameDatasetTrainDataset(args=data_args, 
-                                                batch_size=training_args.per_device_train_batch_size, 
-                                                seed=training_args.seed, 
+        train_dataset = SameDatasetTrainDataset(args=data_args,
+                                                batch_size=training_args.per_device_train_batch_size,
+                                                seed=training_args.seed,
                                                 num_processes=training_args.world_size,
                                                 process_index=training_args.process_index)
         training_args.per_device_train_batch_size = 1
-        training_args.dataloader_num_workers = 0    # avoid multi-processes
+        training_args.dataloader_num_workers = 0  # avoid multi-processes
     else:
         raise NotImplementedError("Not support `same_task_within_batch=False`")
 
@@ -127,7 +126,7 @@ def main():
         query_max_len=data_args.query_max_len,
         passage_max_len=data_args.passage_max_len
     )
-    
+
     trainer = BiTrainer(
         model=model,
         args=training_args,
@@ -138,7 +137,7 @@ def main():
 
     if data_args.same_task_within_batch:
         trainer.add_callback(TrainerCallbackForDataRefresh(train_dataset))
-    
+
     Path(training_args.output_dir).mkdir(parents=True, exist_ok=True)
 
     # Training

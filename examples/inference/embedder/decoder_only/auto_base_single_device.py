@@ -3,8 +3,11 @@ from FlagEmbedding import FlagAutoModel
 
 
 def test_base_single_device():
+
+    model_name_or_path = 'BAAI/bge-multilingual-gemma2'
+    model_name_or_path = "/root/autodl-tmp/pretrained_model/tokenizer/bge-large-zh-v1.5"
     model = FlagAutoModel.from_finetuned(
-        'BAAI/bge-multilingual-gemma2',
+        model_name_or_path,
         query_instruction_for_retrieval="Given a question, retrieve passages that answer the question.",
         devices="cuda:0",   # if you don't have a GPU, you can use "cpu"
         cache_dir=os.getenv('HF_HUB_CACHE', None),

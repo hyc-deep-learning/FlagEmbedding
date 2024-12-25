@@ -12,9 +12,9 @@ logger = logging.getLogger(__name__)
 
 # Modified from https://github.com/beir-cellar/beir/blob/f062f038c4bfd19a8ca942a9910b1e0d218759d4/beir/retrieval/custom_metrics.py#L4
 def evaluate_mrr(
-    qrels: Dict[str, Dict[str, int]],
-    results: Dict[str, Dict[str, float]],
-    k_values: List[int],
+        qrels: Dict[str, Dict[str, int]],
+        results: Dict[str, Dict[str, float]],
+        k_values: List[int],
 ) -> Tuple[Dict[str, float]]:
     """Compute mean reciprocal rank (MRR).
 
@@ -54,9 +54,9 @@ def evaluate_mrr(
 
 # Modified from https://github.com/embeddings-benchmark/mteb/blob/18f730696451a5aaa026494cecf288fd5cde9fd0/mteb/evaluation/evaluators/RetrievalEvaluator.py#L501
 def evaluate_metrics(
-    qrels: Dict[str, Dict[str, int]],
-    results: Dict[str, Dict[str, float]],
-    k_values: List[int],
+        qrels: Dict[str, Dict[str, int]],
+        results: Dict[str, Dict[str, float]],
+        k_values: List[int],
 ) -> Tuple[
     Dict[str, float],
     Dict[str, float],
@@ -74,7 +74,8 @@ def evaluate_metrics(
         Tuple[ Dict[str, float], Dict[str, float], Dict[str, float], Dict[str, float], ]: Results of different metrics at 
             different provided k values.
     """
-    all_ndcgs, all_aps, all_recalls, all_precisions = defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(list)
+    all_ndcgs, all_aps, all_recalls, all_precisions = defaultdict(list), defaultdict(list), defaultdict(
+        list), defaultdict(list)
 
     map_string = "map_cut." + ",".join([str(k) for k in k_values])
     ndcg_string = "ndcg_cut." + ",".join([str(k) for k in k_values])
@@ -109,10 +110,10 @@ def evaluate_metrics(
 
 
 def index(
-    index_factory: str = "Flat", 
-    corpus_embeddings: Optional[np.ndarray] = None, 
-    load_path: Optional[str] = None,
-    device: Optional[str] = None
+        index_factory: str = "Flat",
+        corpus_embeddings: Optional[np.ndarray] = None,
+        load_path: Optional[str] = None,
+        device: Optional[str] = None
 ):
     """Create and add embeddings into a Faiss index.
 
@@ -127,12 +128,12 @@ def index(
     """
     if corpus_embeddings is None:
         corpus_embeddings = np.load(load_path)
-    
+
     logger.info(f"Shape of embeddings: {corpus_embeddings.shape}")
     # create faiss index
     logger.info(f'Indexing {corpus_embeddings.shape[0]} documents...')
     faiss_index = faiss.index_factory(corpus_embeddings.shape[-1], index_factory, faiss.METRIC_INNER_PRODUCT)
-    
+
     if device is None and torch.cuda.is_available():
         try:
             co = faiss.GpuMultipleClonerOptions()
@@ -151,10 +152,10 @@ def index(
 
 
 def search(
-    faiss_index: faiss.Index, 
-    k: int = 100, 
-    query_embeddings: Optional[np.ndarray] = None,
-    load_path: Optional[str] = None
+        faiss_index: faiss.Index,
+        k: int = 100,
+        query_embeddings: Optional[np.ndarray] = None,
+        load_path: Optional[str] = None
 ):
     """
     1. Encode queries into dense embeddings;

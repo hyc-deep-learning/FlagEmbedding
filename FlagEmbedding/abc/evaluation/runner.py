@@ -21,10 +21,11 @@ class AbsEvalRunner:
         eval_args (AbsEvalArgs): :class:AbsEvalArgs object with the evaluation arguments.
         model_args (AbsEvalModelArgs): :class:AbsEvalModelArgs object with the model arguments.
     """
+
     def __init__(
-        self,
-        eval_args: AbsEvalArgs,
-        model_args: AbsEvalModelArgs,
+            self,
+            eval_args: AbsEvalArgs,
+            model_args: AbsEvalModelArgs,
     ):
         self.eval_args = eval_args
         self.model_args = model_args
@@ -51,7 +52,7 @@ class AbsEvalRunner:
             pooling_method=model_args.pooling_method,
             use_fp16=model_args.use_fp16,
             query_instruction_for_retrieval=model_args.query_instruction_for_retrieval,
-            query_instruction_format=model_args.query_instruction_format_for_retrieval,
+            query_instruction_format=model_args.query_instruction_formatx_for_retrieval,
             devices=model_args.devices,
             examples_for_task=model_args.examples_for_task,
             examples_instruction_format=model_args.examples_instruction_format,
@@ -136,10 +137,10 @@ class AbsEvalRunner:
 
     @staticmethod
     def evaluate_metrics(
-        search_results_save_dir: str,
-        output_method: str = "markdown",
-        output_path: str = "./eval_dev_results.md",
-        metrics: Union[str, List[str]] = ["ndcg_at_10", "recall_at_10"]
+            search_results_save_dir: str,
+            output_method: str = "markdown",
+            output_path: str = "./eval_dev_results.md",
+            metrics: Union[str, List[str]] = ["ndcg_at_10", "recall_at_10"]
     ):
         """Evaluate the provided metrics and write the results.
 
@@ -201,7 +202,8 @@ class AbsEvalRunner:
             )
             logger.info(f"{self.eval_args.eval_name} evaluation completed.")
         else:
-            logger.info(f"Running {self.eval_args.eval_name} evaluation on the following dataset names: {dataset_names}")
+            logger.info(
+                f"Running {self.eval_args.eval_name} evaluation on the following dataset names: {dataset_names}")
             for dataset_name in dataset_names:
                 logger.info(f"Running {self.eval_args.eval_name} evaluation on: {dataset_name}")
                 self.evaluator(

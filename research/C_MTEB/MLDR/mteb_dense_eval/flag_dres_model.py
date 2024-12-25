@@ -10,7 +10,7 @@ from transformers import AutoModel, AutoTokenizer, is_torch_npu_available
 from transformers import PreTrainedTokenizerFast, BatchEncoding, DataCollatorWithPadding
 
 
-def _transform_func(examples: Dict[str, List], 
+def _transform_func(examples: Dict[str, List],
                     tokenizer: PreTrainedTokenizerFast,
                     max_length: int) -> BatchEncoding:
     return tokenizer(examples['text'],
@@ -22,15 +22,14 @@ def _transform_func(examples: Dict[str, List],
 
 
 def _transform_func_v2(examples: Dict[str, List],
-                    tokenizer: PreTrainedTokenizerFast,
-                    max_length: int=8192,
-                    ) -> BatchEncoding:
-    
+                       tokenizer: PreTrainedTokenizerFast,
+                       max_length: int = 8192,
+                       ) -> BatchEncoding:
     inputs = tokenizer(examples['text'],
-                     max_length=max_length - 1,
-                     padding=False,
-                     return_attention_mask=False,
-                     truncation=True)
+                       max_length=max_length - 1,
+                       padding=False,
+                       return_attention_mask=False,
+                       truncation=True)
     inputs['input_ids'] = [input_ids + [tokenizer.eos_token_id] for input_ids in inputs['input_ids']]
     inputs = tokenizer.pad(inputs, padding=True, return_attention_mask=True, return_tensors='pt')
     return inputs
@@ -64,7 +63,7 @@ class FlagDRESModel(DRESModel):
         self.corpus_batch_size = corpus_batch_size if corpus_batch_size > 0 else batch_size
         self.max_query_length = max_query_length
         self.max_passage_length = max_passage_length
-        
+
         if use_fp16: self.model.half()
         if torch.cuda.is_available():
             self.device = torch.device("cuda")
@@ -102,7 +101,9 @@ class FlagDRESModel(DRESModel):
         '''
         if isinstance(corpus[0], dict):
             if self.passage_instruction_for_retrieval is not None:
-                input_texts = ['{}{} {}'.format(self.passage_instruction_for_retrieval, doc.get('title', ''), doc['text']).strip() for doc in corpus]
+                input_texts = [
+                    '{}{} {}'.format(self.passage_instruction_for_retrieval, doc.get('title', ''), doc['text']).strip()
+                    for doc in corpus]
             else:
                 input_texts = ['{} {}'.format(doc.get('title', ''), doc['text']).strip() for doc in corpus]
         else:
@@ -122,7 +123,7 @@ class FlagDRESModel(DRESModel):
         if isinstance(sentences, str):
             sentences = [sentences]
             input_was_string = True
-    
+
         dataset = datasets.Dataset.from_dict({'text': sentences})
         if self.pooling_method == 'last':
             dataset.set_transform(partial(_transform_func_v2, tokenizer=self.tokenizer, max_length=max_length))
@@ -138,8 +139,8 @@ class FlagDRESModel(DRESModel):
             num_workers=4,
             collate_fn=data_collator,
             # pin_memory=True
-            )
-        
+        )
+
         all_embeddings = []
         for batch_data in tqdm(data_loader, desc='encoding', mininterval=10):
             batch_data = batch_data.to(self.device)
@@ -157,10 +158,8 @@ class FlagDRESModel(DRESModel):
             return all_embeddings[0]
         else:
             return all_embeddings
-    
-    def pooling(self,
-                last_hidden_state: torch.Tensor,
-                attention_mask: torch.Tensor=None):
+
+    def pooling(self, last_hidden_state: torch.Tensor, attention_mask: torch.Tensor = None):
         if self.pooling_method == 'cls':
             return last_hidden_state[:, 0]
         elif self.pooling_method == 'mean':
